@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daraz Price Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0a0f; --surface:#13131a; --surface2:#1c1c28; --border:#2a2a3d;
+  --accent:#ff6b35; --accent2:#ffb347; --green:#00d084; --red:#ff4757;
+  --text:#f0f0f8; --muted:#7070a0; --label:#a0a0c8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:0.22;pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;padding:36px 20px 80px;}
+
+header{margin-bottom:32px;}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.dot{width:10px;height:10px;background:var(--accent);border-radius:50%;box-shadow:0 0 16px var(--accent);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.75);}}
+h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.5px;}
+h1 span{color:var(--accent);}
+.sub{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:14px;}
+.sec{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.full{grid-column:1/-1;}
+.f{display:flex;flex-direction:column;gap:5px;}
+label{font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--label);}
+input,select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:9px 13px;outline:none;transition:border-color .2s;width:100%;-webkit-appearance:none;}
+input:focus,select:focus{border-color:var(--accent);}
+input[readonly]{opacity:.5;cursor:not-allowed;}
+select option,select optgroup{background:var(--surface2);}
+.pw{position:relative;}
+.pw input{padding-left:44px;}
+.pl{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted);pointer-events:none;}
+.pctw{position:relative;}
+.pctw input{padding-right:26px;}
+.ps{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none;}
+.hint{font-size:10px;color:var(--muted);}
+.tag{display:inline-block;background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.3);border-radius:5px;padding:3px 9px;font-size:10px;color:var(--accent2);margin-top:3px;}
+
+.adv-toggle{width:100%;background:transparent;border:1px dashed var(--border);border-radius:10px;color:var(--label);font-family:'DM Mono',monospace;font-size:11px;padding:10px;cursor:pointer;transition:all .2s;letter-spacing:1px;margin-bottom:14px;}
+.adv-toggle:hover{border-color:var(--accent);color:var(--accent);}
+.adv-panel{display:none;}
+.adv-panel.open{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+
+.btn{width:100%;padding:15px;background:var(--accent);border:none;border-radius:12px;color:#fff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:4px;}
+.btn:hover{background:var(--accent2);transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+
+#result{display:none;animation:fadeIn .35s ease;margin-top:14px;}
+.res-price{text-align:center;padding:28px 20px 20px;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.big{font-family:'Syne',sans-serif;font-size:54px;font-weight:800;color:var(--accent);line-height:1;letter-spacing:-2px;}
+.big .cur{font-size:22px;font-weight:600;vertical-align:top;margin-top:9px;display:inline-block;color:var(--accent2);}
+.res-sub{font-size:11px;color:var(--muted);margin-top:7px;}
+
+.scenarios{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.sc-lbl{font-size:10px;color:var(--muted);}
+.sc-btn{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--label);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;transition:all .15s;}
+.sc-btn:hover,.sc-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(255,107,53,.08);}
+
+.bdgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.br{display:flex;justify-content:space-between;align-items:center;padding:9px 13px;background:var(--surface2);border-radius:7px;border:1px solid var(--border);}
+.br.full{grid-column:1/-1;}
+.br.hl{border-color:var(--green);}
+.br.wa{border-color:var(--accent);}
+.bn{font-size:10px;color:var(--label);text-transform:uppercase;letter-spacing:.5px;}
+.bv{font-size:13px;font-weight:500;}
+.bv.neg{color:var(--red);}
+.bv.pos{color:var(--green);}
+.bv.acc{color:var(--accent);}
+
+.rois{display:flex;gap:10px;margin-top:4px;}
+.rb{flex:1;padding:14px;border-radius:9px;text-align:center;border:1px solid var(--border);background:var(--surface2);}
+.rb .rl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.rb .rv{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;}
+.rb.good .rv{color:var(--green);}
+.rb.ok .rv{color:var(--accent2);}
+.rb.bad .rv{color:var(--red);}
+
+.warnbox{background:rgba(255,71,87,.08);border:1px solid var(--red);border-radius:7px;padding:11px 14px;font-size:11px;color:var(--red);margin-top:10px;display:none;}
+.note{font-size:10px;color:var(--muted);text-align:center;margin-top:16px;letter-spacing:.5px;line-height:1.6;}
+
+/* update banner */
+.update-bar{background:rgba(255,107,53,.07);border:1px solid rgba(255,107,53,.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:11px;color:var(--label);line-height:1.7;}
+.update-bar strong{color:var(--accent2);}
+.update-bar code{background:var(--surface2);border-radius:4px;padding:1px 6px;font-size:10px;color:var(--accent);}
+
+@media(max-width:540px){
+  .g2,.g3{grid-template-columns:1fr;}
+  .big{font-size:40px;}
+  .rois{flex-wrap:wrap;}
+  .bdgrid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo"><div class="dot"></div><h1>Daraz <span>Price</span> Calculator</h1></div>
+  <p class="sub">Pakistan · FBM Seller · <span id="rate-label">Rates: May 2026</span></p>
+</header>
+
+<!-- HOW TO UPDATE BANNER -->
+<div class="update-bar">
+  <strong>📋 How to update rates when Daraz releases a new PDF:</strong><br>
+  Open this HTML file in any text editor → find the section marked <code>DARAZ RATES — UPDATE HERE</code> near the top of the &lt;script&gt; → edit the numbers → save → redeploy. Takes 2 minutes.
+</div>
+
+<!-- MAIN FORM -->
+<div class="card">
+  <div class="sec">Your Product</div>
+  <div class="g2">
+
+    <div class="f full">
+      <label>Category</label>
+      <select id="category" onchange="onCatChange()"></select>
+      <span class="tag" id="comm-tag"></span>
+    </div>
+
+    <div class="f full" id="custom-field" style="display:none;">
+      <label>Custom Commission %</label>
+      <div class="pctw"><input type="number" id="custom-comm" placeholder="e.g. 15.55" step="0.01" min="0" max="50" oninput="onCatChange()"><span class="ps">%</span></div>
+    </div>
+
+    <div class="f">
+      <label>Cost / Purchasing Price</label>
+      <div class="pw"><span class="pl">PKR</span><input type="number" id="cost" placeholder="0" min="0" oninput="updateHint()"></div>
+    </div>
+
+    <div class="f">
+      <label>Target Profit % on Cost</label>
+      <div class="pctw"><input type="number" id="tgt" placeholder="e.g. 30" min="0" max="500" step="1" oninput="updateHint()"><span class="ps">%</span></div>
+      <span class="hint" id="profit-hint">Enter cost + % to see PKR equivalent</span>
+    </div>
+
+    <div class="f">
+      <label>Packing Cost</label>
+      <div class="pw"><span class="pl">PKR</span><input type="number" id="packing" value="0" min="0"></div>
+    </div>
+
+    <div class="f">
+      <label>Extra / Other Costs</label>
+      <div class="pw"><span class="pl">PKR</span><input type="number" id="extra" value="0" min="0"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADVANCED SETTINGS -->
+<button class="adv-toggle" id="adv-btn" onclick="toggleAdv()">⚙ Advanced Fee Settings — click to view / edit</button>
+<div class="adv-panel" id="adv-panel">
+  <div class="card">
+    <div class="sec">Daraz Fee Settings</div>
+    <div class="g3">
+      <div class="f">
+        <label>Commission %</label>
+        <div class="pctw"><input type="number" id="adv-comm" readonly><span class="ps">%</span></div>
+        <span class="hint">Set by category above</span>
+      </div>
+      <div class="f">
+        <label>Payment Fee %</label>
+        <div class="pctw"><input type="number" id="pay-fee" step="0.01" min="0"><span class="ps">%</span></div>
+        <span class="hint">From your statements</span>
+      </div>
+      <div class="f">
+        <label>VAT on Fees %</label>
+        <div class="pctw"><input type="number" id="vat" step="0.1" min="0"><span class="ps">%</span></div>
+        <span class="hint">Applied on commission + payment fee</span>
+      </div>
+      <div class="f">
+        <label>Income Tax WHT</label>
+        <div class="pw"><span class="pl">PKR</span><input type="number" id="income-tax" min="0"></div>
+        <span class="hint">Flat per order</span>
+      </div>
+      <div class="f">
+        <label>Sales Tax WHT</label>
+        <div class="pw"><span class="pl">PKR</span><input type="number" id="sales-tax" min="0"></div>
+        <span class="hint">Flat per order</span>
+      </div>
+      <div class="f">
+        <label>Shipping Gap Buffer</label>
+        <div class="pw"><span class="pl">PKR</span><input type="number" id="shipping" min="0"></div>
+        <span class="hint">Daraz charge minus buyer paid</span>
+      </div>
+      <div class="f">
+        <label>Handling Fee</label>
+        <div class="pw"><span class="pl">PKR</span><input type="number" id="handling" readonly></div>
+        <span class="hint" id="handling-hint">Auto from price bracket</span>
+      </div>
+    </div>
+    <p style="font-size:10px;color:var(--muted);margin-top:14px;line-height:1.7;">
+      💡 Handling fee is automatic based on the official Daraz bracket:<br>
+      PKR 0–500 → PKR 10 &nbsp;|&nbsp; PKR 501–1,000 → PKR 15 &nbsp;|&nbsp; PKR 1,001–2,000 → PKR 20 &nbsp;|&nbsp; PKR 2,001+ → PKR 60
+    </p>
+  </div>
+</div>
+
+<button class="btn" onclick="calculate()">▶ Calculate My Listing Price</button>
+
+<!-- RESULT -->
+<div id="result" class="card">
+  <div class="sec">Result</div>
+  <div class="res-price">
+    <div class="eyebrow">List this price on Daraz</div>
+    <div class="big"><span class="cur">PKR </span><span id="res-price">0</span></div>
+    <div class="res-sub" id="res-sub"></div>
+  </div>
+  <div class="scenarios">
+    <span class="sc-lbl">Round to:</span>
+    <button class="sc-btn active" onclick="showScenario(0)">Exact</button>
+    <button class="sc-btn" onclick="showScenario(1)">Next ×10 ▲</button>
+    <button class="sc-btn" onclick="showScenario(-1)">Prev ×10 ▼</button>
+    <button class="sc-btn" onclick="showScenario(2)">Next ×50 ▲</button>
+  </div>
+  <div class="bdgrid" id="breakdown"></div>
+  <div class="rois" id="roi-strip"></div>
+  <div class="warnbox" id="warnbox"></div>
+  <p class="note" id="rate-note"></p>
+</div>
+
+</div>
+
+<script>
+/* ============================================================
+   DARAZ RATES — UPDATE HERE
+   When Daraz releases a new PDF, update the values below.
+   Last updated: May 2026
+   Source: PK_Commission_Rates_May_2026.pdf + Payment Policy
+   ============================================================ */
+const RATES = {
+
+  // ── Date label shown in the UI ──────────────────────────────
+  date: "May 2026",
+
+  // ── Payment fee % (from your seller statements) ─────────────
+  payment_fee_pct: 2.59,
+
+  // ── VAT % applied ON TOP of commission + payment fee ────────
+  vat_pct: 16,
+
+  // ── Flat fees per order (from your statements) ───────────────
+  income_tax_wht: 18,
+  sales_tax_wht:  18,
+
+  // ── Avg shipping gap buffer (Daraz charge minus buyer paid) ──
+  shipping_gap: 45,
+
+  // ── Handling fee brackets (official Payment Policy) ─────────
+  // Format: { max: upper limit of bracket (null = unlimited), fee: PKR }
+  handling_brackets: [
+    { max: 500,  fee: 10 },
+    { max: 1000, fee: 15 },
+    { max: 2000, fee: 20 },
+    { max: null, fee: 60 }
+  ],
+
+  // ── Commission rates by category (official May 2026 PDF) ────
+  // Format: { group, label, rate }
+  // To update: change the rate value next to the category.
+  // To add a new category: add a new object following the same format.
+  categories: [
+
+    // ★ LIGHTING — YOUR PRODUCTS (pinned at top)
+    { group:"★ Lighting — Your Products", label:"Home & Living → Lighting",              rate:15.55 },
+    { group:"★ Lighting — Your Products", label:"Furniture & Decor → Lighting",          rate:14.80 },
+    { group:"★ Lighting — Your Products", label:"Tools, DIY → Work Lights",              rate:14.80 },
+    { group:"★ Lighting — Your Products", label:"Tools, DIY → Electrical",               rate:14.80 },
+    { group:"★ Lighting — Your Products", label:"Tools, DIY → Fixtures & Plumbing",      rate:14.80 },
+
+    // MOBILES & TABLETS
+    { group:"Mobiles & Tablets", label:"Mobiles",                   rate:3.00 },
+    { group:"Mobiles & Tablets", label:"Tablets",                   rate:5.00 },
+    { group:"Mobiles & Tablets", label:"Mobile Accessories",        rate:12.90 },
+    { group:"Mobiles & Tablets", label:"Tablet Accessories",        rate:12.90 },
+    { group:"Mobiles & Tablets", label:"Gadgets",                   rate:17.00 },
+    { group:"Mobiles & Tablets", label:"Landline Phones",           rate:13.00 },
+    { group:"Mobiles & Tablets", label:"Feature Phones",            rate:3.50 },
+
+    // COMPUTERS & LAPTOPS
+    { group:"Computers & Laptops", label:"Laptops",                 rate:2.00 },
+    { group:"Computers & Laptops", label:"Desktop Computers",       rate:3.00 },
+    { group:"Computers & Laptops", label:"Computer Accessories",    rate:12.90 },
+    { group:"Computers & Laptops", label:"Computer Components",     rate:6.00 },
+    { group:"Computers & Laptops", label:"Network Components",      rate:8.60 },
+    { group:"Computers & Laptops", label:"Printers & Accessories",  rate:4.50 },
+    { group:"Computers & Laptops", label:"Monitors",                rate:10.00 },
+    { group:"Computers & Laptops", label:"Storage",                 rate:5.00 },
+    { group:"Computers & Laptops", label:"PC Gaming",               rate:6.00 },
+    { group:"Computers & Laptops", label:"Software",                rate:10.00 },
+
+    // TV / AUDIO / GAMING
+    { group:"TV, Audio & Gaming", label:"Televisions",              rate:4.00 },
+    { group:"TV, Audio & Gaming", label:"Audio",                    rate:8.60 },
+    { group:"TV, Audio & Gaming", label:"Video",                    rate:9.00 },
+    { group:"TV, Audio & Gaming", label:"Home Audio & Theater",     rate:9.00 },
+    { group:"TV, Audio & Gaming", label:"TV Accessories",           rate:10.00 },
+    { group:"TV, Audio & Gaming", label:"Wearable Technology",      rate:5.00 },
+    { group:"TV, Audio & Gaming", label:"Console Gaming",           rate:6.00 },
+    { group:"TV, Audio & Gaming", label:"App-enabled Accessories",  rate:12.00 },
+
+    // CAMERAS
+    { group:"Cameras", label:"Point & Shoot",                       rate:5.50 },
+    { group:"Cameras", label:"DSLR",                                rate:4.00 },
+    { group:"Cameras", label:"Mirrorless",                          rate:7.00 },
+    { group:"Cameras", label:"Instant Camera",                      rate:7.00 },
+    { group:"Cameras", label:"Video & Action Camcorder",            rate:5.50 },
+    { group:"Cameras", label:"Camera Accessories",                  rate:10.00 },
+    { group:"Cameras", label:"Security Cameras & Systems",          rate:4.00 },
+    { group:"Cameras", label:"Drones",                              rate:6.00 },
+    { group:"Cameras", label:"Optics",                              rate:7.00 },
+    { group:"Cameras", label:"Lenses",                              rate:5.00 },
+
+    // HOME APPLIANCES
+    { group:"Home Appliances", label:"Home Appliances (general)",    rate:4.00 },
+    { group:"Home Appliances", label:"Small Kitchen Appliances",     rate:8.90 },
+    { group:"Home Appliances", label:"Cooling & Heating",            rate:4.00 },
+    { group:"Home Appliances", label:"Irons & Garment Steamers",     rate:8.90 },
+    { group:"Home Appliances", label:"Vacuums & Floor Care",         rate:8.90 },
+    { group:"Home Appliances", label:"Kitchen Appliances",           rate:4.00 },
+    { group:"Home Appliances", label:"Sewing Machines",              rate:11.00 },
+    { group:"Home Appliances", label:"Washers & Dryers",             rate:5.00 },
+    { group:"Home Appliances", label:"Generators & Portable Power",  rate:6.00 },
+    { group:"Home Appliances", label:"Appliance Parts",              rate:11.00 },
+
+    // HOME & LIVING
+    { group:"Home & Living", label:"Lighting",                       rate:15.55 },
+    { group:"Home & Living", label:"Bath",                           rate:15.55 },
+    { group:"Home & Living", label:"Bedding",                        rate:15.55 },
+    { group:"Home & Living", label:"Furniture",                      rate:15.55 },
+    { group:"Home & Living", label:"Home Décor",                     rate:15.55 },
+    { group:"Home & Living", label:"Outdoor & Garden",               rate:15.55 },
+
+    // FURNITURE & DECOR
+    { group:"Furniture & Decor", label:"Lighting",                   rate:14.80 },
+    { group:"Furniture & Decor", label:"Storage & Organisation",     rate:14.80 },
+    { group:"Furniture & Decor", label:"Home Decor",                 rate:14.80 },
+    { group:"Furniture & Decor", label:"Furniture",                  rate:11.10 },
+
+    // TOOLS, DIY & OUTDOOR
+    { group:"Tools, DIY & Outdoor", label:"Work Lights",             rate:14.80 },
+    { group:"Tools, DIY & Outdoor", label:"Electrical",              rate:14.80 },
+    { group:"Tools, DIY & Outdoor", label:"Fixtures & Plumbing",     rate:14.80 },
+    { group:"Tools, DIY & Outdoor", label:"Hardware",                rate:14.80 },
+    { group:"Tools, DIY & Outdoor", label:"Security",                rate:14.80 },
+    { group:"Tools, DIY & Outdoor", label:"Fire Safety",             rate:14.80 },
+    { group:"Tools, DIY & Outdoor", label:"Painting & Decorating",   rate:14.80 },
+    { group:"Tools, DIY & Outdoor", label:"Lawn & Garden",           rate:14.80 },
+    { group:"Tools, DIY & Outdoor", label:"Hand Tools",              rate:14.35 },
+    { group:"Tools, DIY & Outdoor", label:"Protective Clothing",     rate:14.35 },
+    { group:"Tools, DIY & Outdoor", label:"Power Tools",             rate:9.55 },
+    { group:"Tools, DIY & Outdoor", label:"Outdoor",                 rate:9.55 },
+    { group:"Tools, DIY & Outdoor", label:"Tool Storage & Shelving", rate:17.80 },
+    { group:"Tools, DIY & Outdoor", label:"Ladders & Workbenches",   rate:17.80 },
+    { group:"Tools, DIY & Outdoor", label:"Measuring & Levelling",   rate:17.80 },
+    { group:"Tools, DIY & Outdoor", label:"Warehouse Equipment",     rate:10.00 },
+    { group:"Tools, DIY & Outdoor", label:"Home Build Up",           rate:1.90 },
+
+    // HEALTH & BEAUTY
+    { group:"Health & Beauty", label:"Bath & Body",                  rate:14.54 },
+    { group:"Health & Beauty", label:"Makeup",                       rate:14.44 },
+    { group:"Health & Beauty", label:"Skin Care",                    rate:14.54 },
+    { group:"Health & Beauty", label:"Hair Care",                    rate:14.54 },
+    { group:"Health & Beauty", label:"Personal Care",                rate:14.54 },
+    { group:"Health & Beauty", label:"Men's Care",                   rate:14.54 },
+    { group:"Health & Beauty", label:"Beauty Tools",                 rate:14.54 },
+    { group:"Health & Beauty", label:"Food Supplements",             rate:14.54 },
+    { group:"Health & Beauty", label:"Fragrances",                   rate:15.04 },
+    { group:"Health & Beauty", label:"Gift Sets",                    rate:14.54 },
+    { group:"Health & Beauty", label:"Medical Supplies",             rate:7.54 },
+    { group:"Health & Beauty", label:"Medicines",                    rate:14.44 },
+    { group:"Health & Beauty", label:"Sexual Wellness",              rate:14.54 },
+
+    // FASHION
+    { group:"Fashion", label:"Women",                                rate:18.50 },
+    { group:"Fashion", label:"Men",                                  rate:18.50 },
+    { group:"Fashion", label:"Girls",                                rate:18.50 },
+    { group:"Fashion", label:"Boys",                                 rate:18.50 },
+    { group:"Fashion", label:"Unisex",                               rate:18.50 },
+    { group:"Fashion", label:"Kids Unisex",                          rate:18.50 },
+
+    // BAGS & TRAVEL
+    { group:"Bags & Travel", label:"Men Bags",                       rate:17.00 },
+    { group:"Bags & Travel", label:"Women Bags",                     rate:17.00 },
+    { group:"Bags & Travel", label:"Unisex Bags",                    rate:17.00 },
+    { group:"Bags & Travel", label:"Kids Bags",                      rate:17.00 },
+    { group:"Bags & Travel", label:"Travel",                         rate:17.00 },
+
+    // SPORTS & OUTDOORS
+    { group:"Sports & Outdoors", label:"Exercise & Fitness",         rate:11.10 },
+    { group:"Sports & Outdoors", label:"Racket Sports",              rate:11.10 },
+    { group:"Sports & Outdoors", label:"Team Sports",                rate:9.55 },
+    { group:"Sports & Outdoors", label:"Outdoor Recreation",         rate:11.10 },
+    { group:"Sports & Outdoors", label:"Shoes & Clothing",           rate:19.10 },
+    { group:"Sports & Outdoors", label:"Sports Nutrition",           rate:4.45 },
+    { group:"Sports & Outdoors", label:"Boxing, MMA",                rate:11.10 },
+    { group:"Sports & Outdoors", label:"Water Sports",               rate:9.55 },
+    { group:"Sports & Outdoors", label:"Fitness Gadgets",            rate:5.55 },
+
+    // KITCHEN & DINING
+    { group:"Kitchen & Dining", label:"Cookware",                    rate:14.80 },
+    { group:"Kitchen & Dining", label:"Dinnerware",                  rate:14.80 },
+    { group:"Kitchen & Dining", label:"Drinkware",                   rate:14.80 },
+    { group:"Kitchen & Dining", label:"Kitchen Storage",             rate:14.80 },
+    { group:"Kitchen & Dining", label:"Kitchen Utensils",            rate:15.55 },
+    { group:"Kitchen & Dining", label:"Coffee & Tea",                rate:14.80 },
+    { group:"Kitchen & Dining", label:"Bakeware",                    rate:14.80 },
+    { group:"Kitchen & Dining", label:"Serveware",                   rate:14.80 },
+    { group:"Kitchen & Dining", label:"Kitchen & Table Linen",       rate:14.80 },
+
+    // BEDDING & BATH
+    { group:"Bedding & Bath", label:"Bath",                          rate:15.55 },
+    { group:"Bedding & Bath", label:"Bedding",                       rate:14.80 },
+
+    // LAUNDRY & CLEANING
+    { group:"Laundry & Cleaning", label:"Laundry",                   rate:14.35 },
+    { group:"Laundry & Cleaning", label:"Cleaning",                  rate:14.35 },
+
+    // STATIONERY & CRAFT
+    { group:"Stationery & Craft", label:"Art Supplies",              rate:6.70 },
+    { group:"Stationery & Craft", label:"School & Office Equipment", rate:4.80 },
+    { group:"Stationery & Craft", label:"Craft Supplies",            rate:6.70 },
+    { group:"Stationery & Craft", label:"Gifts & Wrapping",          rate:6.70 },
+    { group:"Stationery & Craft", label:"Writing & Correction",      rate:6.70 },
+    { group:"Stationery & Craft", label:"Paper Products",            rate:4.80 },
+    { group:"Stationery & Craft", label:"Packaging & Cartons",       rate:6.70 },
+    { group:"Stationery & Craft", label:"Religious Items",           rate:6.70 },
+
+    // GROCERIES
+    { group:"Groceries", label:"Baking & Cooking",                   rate:4.44 },
+    { group:"Groceries", label:"Breakfast",                          rate:6.04 },
+    { group:"Groceries", label:"Candy & Chocolate",                  rate:6.54 },
+    { group:"Groceries", label:"Canned & Packaged Foods",            rate:6.04 },
+    { group:"Groceries", label:"Snacks",                             rate:7.04 },
+    { group:"Groceries", label:"Beverages",                          rate:4.44 },
+    { group:"Groceries", label:"Dairy & Chilled",                    rate:6.54 },
+    { group:"Groceries", label:"Frozen",                             rate:8.63 },
+    { group:"Groceries", label:"Bakery",                             rate:4.44 },
+    { group:"Groceries", label:"Nicotine Products",                  rate:8.54 },
+    { group:"Groceries", label:"Laundry & Household",                rate:8.54 },
+
+    // TOYS & GAMES
+    { group:"Toys & Games", label:"Toys (general)",                  rate:16.65 },
+    { group:"Toys & Games", label:"Electronic Toys",                 rate:16.65 },
+    { group:"Toys & Games", label:"Remote Control Vehicles",         rate:16.65 },
+    { group:"Toys & Games", label:"Learning & Education",            rate:16.65 },
+    { group:"Toys & Games", label:"Stuffed Toys",                    rate:13.50 },
+    { group:"Toys & Games", label:"Puzzle",                          rate:16.65 },
+    { group:"Toys & Games", label:"Sports & Outdoor Play",           rate:16.65 },
+    { group:"Toys & Games", label:"Party Supplies",                  rate:16.65 },
+    { group:"Toys & Games", label:"Traditional Games",               rate:16.65 },
+
+    // MOTHER & BABY
+    { group:"Mother & Baby", label:"Baby Personal Care",             rate:11.54 },
+    { group:"Mother & Baby", label:"Baby Health Care",               rate:10.54 },
+    { group:"Mother & Baby", label:"Feeding",                        rate:5.54 },
+    { group:"Mother & Baby", label:"Diapers & Potty",                rate:7.54 },
+    { group:"Mother & Baby", label:"Baby Gear",                      rate:10.14 },
+    { group:"Mother & Baby", label:"Baby & Toddler Toys",            rate:11.54 },
+    { group:"Mother & Baby", label:"Baby Clothing",                  rate:18.36 },
+    { group:"Mother & Baby", label:"Nursery",                        rate:10.14 },
+    { group:"Mother & Baby", label:"Maternity Care",                 rate:10.54 },
+
+    // WATCHES, SUNGLASSES & JEWELLERY
+    { group:"Watches, Sunglasses & Jewellery", label:"Watches",      rate:20.00 },
+    { group:"Watches, Sunglasses & Jewellery", label:"Jewellery",    rate:20.00 },
+    { group:"Watches, Sunglasses & Jewellery", label:"Eyewear",      rate:20.00 },
+
+    // MOTORS
+    { group:"Motors", label:"Automotive",                            rate:9.55 },
+    { group:"Motors", label:"Motorcycle",                            rate:9.55 },
+    { group:"Motors", label:"Service & Installations",              rate:11.10 },
+
+    // MEDIA, MUSIC & BOOKS
+    { group:"Media, Music & Books", label:"Books",                   rate:14.35 },
+    { group:"Media, Music & Books", label:"eBooks",                  rate:14.35 },
+    { group:"Media, Music & Books", label:"Magazines",               rate:16.65 },
+    { group:"Media, Music & Books", label:"Music",                   rate:16.65 },
+    { group:"Media, Music & Books", label:"Musical Instruments",     rate:11.10 },
+
+    // PET SUPPLIES
+    { group:"Pet Supplies", label:"Dog",                              rate:10.04 },
+    { group:"Pet Supplies", label:"Cat",                              rate:10.04 },
+    { group:"Pet Supplies", label:"Bird",                             rate:10.04 },
+    { group:"Pet Supplies", label:"Fish",                             rate:10.04 },
+    { group:"Pet Supplies", label:"Small Pet",                        rate:10.04 },
+    { group:"Pet Supplies", label:"Reptile",                          rate:10.04 },
+
+    // KIDS' & BABY FASHION
+    { group:"Kids' & Baby Fashion", label:"Kids Fashion",            rate:2.95 },
+
+    // CUSTOM (always last)
+    { group:"— Custom —", label:"Enter custom rate...", rate: null }
+  ]
+};
+/* ============================================================
+   END OF RATES SECTION
+   ============================================================ */
+
+
+// ── Boot: build dropdown & set defaults ───────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  buildDropdown();
+  document.getElementById('pay-fee').value    = RATES.payment_fee_pct;
+  document.getElementById('vat').value        = RATES.vat_pct;
+  document.getElementById('income-tax').value = RATES.income_tax_wht;
+  document.getElementById('sales-tax').value  = RATES.sales_tax_wht;
+  document.getElementById('shipping').value   = RATES.shipping_gap;
+  document.getElementById('rate-label').textContent = 'Rates: ' + RATES.date;
+  document.getElementById('rate-note').textContent =
+    'Rates sourced from official Daraz ' + RATES.date + ' Commission PDF + Payment Policy. Commission is exclusive of VAT.';
+  onCatChange();
+});
+
+function buildDropdown() {
+  const sel = document.getElementById('category');
+  const groups = {};
+  RATES.categories.forEach(c => {
+    if (!groups[c.group]) groups[c.group] = [];
+    groups[c.group].push(c);
+  });
+  Object.keys(groups).forEach(g => {
+    const og = document.createElement('optgroup');
+    og.label = g;
+    groups[g].forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.rate === null ? 'custom' : c.rate;
+      o.textContent = c.rate === null ? c.label : `${c.label} — ${c.rate}%`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────
+function toggleAdv() {
+  const p = document.getElementById('adv-panel');
+  p.classList.toggle('open');
+  document.getElementById('adv-btn').textContent = p.classList.contains('open')
+    ? '⚙ Advanced Fee Settings — click to collapse'
+    : '⚙ Advanced Fee Settings — click to view / edit';
+}
+
+function getComm() {
+  const v = document.getElementById('category').value;
+  if (v === 'custom') return parseFloat(document.getElementById('custom-comm').value) || 0;
+  return parseFloat(v) || 0;
+}
+
+function onCatChange() {
+  const isCustom = document.getElementById('category').value === 'custom';
+  document.getElementById('custom-field').style.display = isCustom ? 'block' : 'none';
+  const comm = getComm();
+  const vat  = parseFloat(document.getElementById('vat').value) || RATES.vat_pct;
+  const eff  = comm * (1 + vat / 100);
+  document.getElementById('comm-tag').textContent =
+    `Commission: ${comm.toFixed(2)}% + ${vat}% VAT = effective ${eff.toFixed(2)}% of selling price`;
+  document.getElementById('adv-comm').value = comm;
+}
+
+function updateHint() {
+  const cost = parseFloat(document.getElementById('cost').value) || 0;
+  const pct  = parseFloat(document.getElementById('tgt').value) || 0;
+  document.getElementById('profit-hint').textContent = (cost > 0 && pct > 0)
+    ? `= PKR ${Math.round(cost * pct / 100).toLocaleString()} profit on PKR ${Math.round(cost).toLocaleString()} cost`
+    : 'Enter cost + % to see PKR equivalent';
+}
+
+// ── Handling fee from official bracket ───────────────────────────────────
+function getHandlingFee(price) {
+  for (const b of RATES.handling_brackets) {
+    if (b.max === null || price <= b.max) return b.fee;
+  }
+  return 60;
+}
+
+// ── Core calculation ──────────────────────────────────────────────────────
+function calculate() {
+  const cost       = parseFloat(document.getElementById('cost').value) || 0;
+  const tgtPct     = parseFloat(document.getElementById('tgt').value) || 0;
+  const packing    = parseFloat(document.getElementById('packing').value) || 0;
+  const extra      = parseFloat(document.getElementById('extra').value) || 0;
+  const commPct    = getComm();
+  const payFeePct  = parseFloat(document.getElementById('pay-fee').value) || 0;
+  const vatPct     = parseFloat(document.getElementById('vat').value) || 0;
+  const incomeTax  = parseFloat(document.getElementById('income-tax').value) || 0;
+  const salesTax   = parseFloat(document.getElementById('sales-tax').value) || 0;
+  const shipping   = parseFloat(document.getElementById('shipping').value) || 0;
+
+  if (cost <= 0) { alert('Please enter your cost / purchasing price.'); return; }
+
+  const targetProfit = cost * (tgtPct / 100);
+
+  // Variable fraction of selling price (commission + payment fee, both with VAT on top)
+  const commFrac = commPct / 100;
+  const payFrac  = payFeePct / 100;
+  const vatFrac  = vatPct / 100;
+  const varFrac  = (commFrac + payFrac) * (1 + vatFrac);
+
+  // Iterate to resolve handling fee bracket (depends on final price)
+  let handling = getHandlingFee(cost * 1.4); // rough starting estimate
+  let price = 0;
+  for (let i = 0; i < 8; i++) {
+    const fixed = cost + packing + extra + shipping + handling + incomeTax + salesTax;
+    price = (fixed + targetProfit) / (1 - varFrac);
+    const newH = getHandlingFee(price);
+    if (newH === handling) break;
+    handling = newH;
+  }
+
+  // Update advanced panel handling field
+  document.getElementById('handling').value = handling;
+  document.getElementById('handling-hint').textContent =
+    `Auto: PKR ${handling} for items in this price bracket`;
+
+  lastResult = { price, cost, packing, extra, shipping, incomeTax, salesTax,
+                 handling, commPct, payFeePct, vatPct, targetProfit, tgtPct };
+
+  renderResult(price, 0);
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('result').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  document.querySelectorAll('.sc-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+}
+
+let lastResult = null;
+
+function showScenario(dir) {
+  if (!lastResult) return;
+  let p = lastResult.price;
+  if (dir ===  1) p = Math.ceil(p / 10) * 10;
+  if (dir === -1) p = Math.floor(p / 10) * 10;
+  if (dir ===  2) p = Math.ceil(p / 50) * 50;
+  renderResult(p, dir);
+  const idx = [0,1,-1,2].indexOf(dir);
+  document.querySelectorAll('.sc-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+}
+
+function renderResult(price, dir) {
+  const r = lastResult;
+  const commFrac = r.commPct / 100;
+  const payFrac  = r.payFeePct / 100;
+  const vatFrac  = r.vatPct / 100;
+  const hFee     = getHandlingFee(price);
+
+  const commFee   = price * commFrac;
+  const payFee    = price * payFrac;
+  const vatFees   = (commFee + payFee) * vatFrac;
+  const totalFees = commFee + payFee + vatFees + hFee + r.incomeTax + r.salesTax;
+  const totalCost = r.cost + r.packing + r.extra + r.shipping + totalFees;
+  const profit    = price - totalCost;
+  const roi       = (profit / (r.cost + r.packing + r.extra)) * 100;
+  const margin    = (profit / price) * 100;
+
+  document.getElementById('res-price').textContent = Math.round(price).toLocaleString();
+
+  const labels = {0:'Exact price',1:'Rounded up ×10','-1':'Rounded down ×10',2:'Rounded up ×50'};
+  document.getElementById('res-sub').textContent =
+    (labels[dir]||'') + ` · Profit: PKR ${Math.round(profit).toLocaleString()} (${r.tgtPct}% on cost)`;
+
+  document.getElementById('breakdown').innerHTML = `
+    <div class="br"><span class="bn">Cost Price</span><span class="bv neg">− PKR ${Math.round(r.cost).toLocaleString()}</span></div>
+    <div class="br"><span class="bn">Commission (${r.commPct}%)</span><span class="bv neg">− PKR ${Math.round(commFee)}</span></div>
+    <div class="br"><span class="bn">Payment Fee (${r.payFeePct}%)</span><span class="bv neg">− PKR ${Math.round(payFee)}</span></div>
+    <div class="br"><span class="bn">VAT on Fees (${r.vatPct}%)</span><span class="bv neg">− PKR ${Math.round(vatFees)}</span></div>
+    <div class="br"><span class="bn">Income Tax WHT</span><span class="bv neg">− PKR ${r.incomeTax}</span></div>
+    <div class="br"><span class="bn">Sales Tax WHT</span><span class="bv neg">− PKR ${r.salesTax}</span></div>
+    <div class="br"><span class="bn">Handling Fee</span><span class="bv neg">− PKR ${hFee}</span></div>
+    <div class="br"><span class="bn">Shipping Gap</span><span class="bv neg">− PKR ${r.shipping}</span></div>
+    ${r.packing > 0 ? `<div class="br"><span class="bn">Packing</span><span class="bv neg">− PKR ${r.packing}</span></div>` : ''}
+    ${r.extra   > 0 ? `<div class="br"><span class="bn">Extra Costs</span><span class="bv neg">− PKR ${r.extra}</span></div>` : ''}
+    <div class="br full wa"><span class="bn">Total Daraz Deductions</span><span class="bv acc">PKR ${Math.round(totalFees).toLocaleString()}</span></div>
+    <div class="br full hl"><span class="bn">Your Net Profit</span><span class="bv pos">PKR ${Math.round(profit).toLocaleString()}</span></div>
+  `;
+
+  document.getElementById('roi-strip').innerHTML = `
+    <div class="rb ${roi>=25?'good':roi>=10?'ok':'bad'}">
+      <div class="rl">ROI</div><div class="rv">${roi.toFixed(1)}%</div>
+    </div>
+    <div class="rb ${margin>=20?'good':margin>=10?'ok':'bad'}">
+      <div class="rl">Margin</div><div class="rv">${margin.toFixed(1)}%</div>
+    </div>
+    <div class="rb ${profit>=r.targetProfit*0.98?'good':'bad'}">
+      <div class="rl">Profit</div><div class="rv">PKR ${Math.round(profit).toLocaleString()}</div>
+    </div>
+  `;
+
+  const wb = document.getElementById('warnbox');
+  if (profit < 0) {
+    wb.style.display='block';
+    wb.textContent='⚠ This price results in a LOSS. Increase your target or reduce your costs.';
+  } else if (roi < 10) {
+    wb.style.display='block';
+    wb.textContent=`⚠ ROI is only ${roi.toFixed(1)}% — consider whether this is sustainable after restocking.`;
+  } else {
+    wb.style.display='none';
+  }
+}
+</script>
+</body>
+</html>
